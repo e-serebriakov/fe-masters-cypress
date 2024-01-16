@@ -30,7 +30,7 @@
 
   export let post: Post;
 
-  $: draft = post.content;
+  // let draft = post.content;
   $: isEditing = $page.query.has('editing');
 
   const updatePost = () => {
@@ -39,7 +39,7 @@
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
       },
-      body: `content=${draft}`,
+      body: `content=${post.content}`,
     }).then((response) => {
       if (response.ok) {
         invalidate(`/echo-chamber/api/${post.id}`);
@@ -112,7 +112,7 @@
         type="text"
         name="text"
         use:focusOnMount
-        bind:value={draft}
+        bind:value="{post.content}"
         data-test="post-detail-draft-content"
       />
       <button type="submit" data-test="post-detail-edit-submit">Update</button>
