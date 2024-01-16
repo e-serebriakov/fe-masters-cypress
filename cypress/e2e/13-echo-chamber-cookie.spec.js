@@ -21,12 +21,18 @@ describe('Signing in with a seeded database', () => {
     cy.location('pathname').should('contain', '/echo-chamber/posts');
   });
 
-  it('should set a cookie', () => {});
+  it('should set a cookie', () => {
+    cy.getCookie('jwt').then((cookie) => {
+      const value = decodeToken(cookie.value);
+      expect(value).to.have.property('email', user.email);
+    });
+  });
 });
 
 describe('Setting the cookie', () => {
   beforeEach(() => {
     cy.task('seed');
+    cy.setCookie('jwt', encodeToken({ id: 999, email: 'first@example.com' }));
     cy.visit('/echo-chamber/sign-in');
   });
 
@@ -34,18 +40,30 @@ describe('Setting the cookie', () => {
     cy.location('pathname').should('contain', '/echo-chamber/posts');
   });
 
-  it('show that user on the page', () => {});
+  it('show that user on the page', () => {
+    cy.contains('first@example.com')
+  });
 });
 
 describe('Setting the cookie with real data', () => {
   beforeEach(() => {
     cy.task('seed');
-    cy.visit('/echo-chamber/sign-in');
+    cy.request('/echo-chamber/api/users')
+      .then((response) => {
+        const [user] = response.body.users;
+        cy.setCookie('jwt', encodeToken(user)).then(() => user);
+      })
+      .as('user');
+      cy.visit('/echo-chamber/sign-in');
   });
 
   it.skip('should be able to log in', () => {
     cy.location('pathname').should('contain', '/echo-chamber/posts');
   });
 
-  it('show that user on the page', () => {});
+  it('show that user on the page', () => {
+    cy.get('@user').then((user) => {
+      cy.contains(user.email);
+    });
+  });
 });
